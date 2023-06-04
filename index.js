@@ -7,6 +7,7 @@ import app from "./src/app.js";
   try {
     await mongoose.connect("mongodb://localhost:27017/ecomm");
     console.log("DB Connected !");
+    // onListning();
 
     app.on("error", (err) => {
       console.error("ERROR:", err);
@@ -15,7 +16,7 @@ import app from "./src/app.js";
     const onListning = () => {
       console.log(`Listning on port 4000`);
     };
-    app.listen(4000);
+    app.listen(4000, onListning);
   } catch (err) {
     console.error("Error:", err);
     throw err;
