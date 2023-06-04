@@ -1,11 +1,13 @@
 import mongoose from "mongoose";
 import app from "./src/app.js";
+import config from "./src/config/index.js";
 
 // create a method
+// run a method
 
 (async () => {
   try {
-    await mongoose.connect("mongodb://localhost:27017/ecomm");
+    await mongoose.connect(config.MONGODB_URL);
     console.log("DB Connected !");
     // onListning();
 
@@ -14,13 +16,11 @@ import app from "./src/app.js";
     });
 
     const onListning = () => {
-      console.log(`Listning on port 4000`);
+      console.log(`Listning on port ${config.PORT}`);
     };
-    app.listen(4000, onListning);
+    app.listen(config.PORT, onListning);
   } catch (err) {
     console.error("Error:", err);
     throw err;
   }
 })();
-
-// run a method
