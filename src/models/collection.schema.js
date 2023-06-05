@@ -15,3 +15,5 @@ const collectionScema = new mongoose.Schema(
 );
 
 export default mongoose.model("Collection", collectionScema);
+
+// collections
