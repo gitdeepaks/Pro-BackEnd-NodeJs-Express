@@ -53,6 +53,22 @@ userSchema.methods = {
       expiresIn: config.JWT_EXPIRY,
     });
   },
+
+  // generate forgot password token
+  generateForgotPasswordToken: function () {
+    const forgotToken = crypto.randomBytes(20).toString("hex");
+
+    // Just to enctript the token
+    this.forgotPasswordToken = crypto
+      .createHash("sha256")
+      .update(forgotToken)
+      .digest("hex");
+
+    // time for token to expire
+    this.forgotPasswordExpiry = Date.now() + 20 * 60 * 1000;
+
+    return forgotToken;
+  },
 };
 
 export default mongoose.model("User", userSchema);
