@@ -82,4 +82,14 @@ export const logout = asyncHandler(async (req, res) => {
   });
 });
 
-export const getProfile = asyncHandler(async (req, res) => {});
+export const getProfile = asyncHandler(async (req, res) => {
+  const { user } = req;
+
+  if (!user) {
+    throw new CustomError("user not fount", 401);
+  }
+  res.status(200).json({
+    success: true,
+    user,
+  });
+});
