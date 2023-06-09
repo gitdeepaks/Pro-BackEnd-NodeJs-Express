@@ -1,7 +1,7 @@
 // for role base access
 
 const AuthRole = {
-  Admin: "ADMIN",
+  ADMIN: "ADMIN",
   MODERATOR: "MODERATOR",
   USER: "USER",
 };

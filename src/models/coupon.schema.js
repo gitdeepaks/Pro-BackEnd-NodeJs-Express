@@ -7,7 +7,7 @@ const couponSchema = new mongoose.Schema(
       required: [true, "Please provide a coupon code"],
     },
     discount: {
-      type: NUmber,
+      type: Number,
       default: 0,
     },
     active: {
