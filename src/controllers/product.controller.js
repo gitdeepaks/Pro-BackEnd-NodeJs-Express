@@ -32,7 +32,7 @@ export const addProduct = asyncHandler(async (req, res) => {
 
         const upload = await s3FileUpload({
           bucketName: config.S3_BUCKET_NAME,
-          key: `product/${productId}/photo_${index + 1}.png`,
+          key: `products/${productId}/photo_${index + 1}.png`,
           body: data,
           contentType: element.mimetype,
         });
@@ -53,6 +53,89 @@ export const addProduct = asyncHandler(async (req, res) => {
       ...fields,
     });
 
+    if (!product) {
+      throw new CustomError("Product failed to be created in DB", 400);
+    }
+
+    res.status(200).json({
+      success: true,
+      product,
+    });
+
     //TODO
+  });
+});
+
+export const getAllProducts = asyncHandler(async (res, req) => {
+  const products = await Product.find({});
+
+  if (!products) {
+    throw new CustomError("No  product found", 404);
+  }
+
+  res.status(200).json({
+    success: true,
+    products,
+  });
+});
+
+export const getProductById = asyncHandler(async (res, req) => {
+  const { id: productId } = req.params;
+
+  const product = await Product.findById(productId);
+
+  if (!product) {
+    throw new CustomError("No product found", 404);
+  }
+
+  res.status(200).json({
+    success: true,
+    product,
+  });
+});
+
+export const getProductByCollectionId = asyncHandler(async (req, res) => {
+  const { id: collectionId } = req.params;
+
+  const products = Product.find({ collectionId });
+
+  if (!products) {
+    throw new CustomError("No products found", 404);
+  }
+
+  res.status(200).json({
+    success: true,
+    products,
+  });
+});
+
+export const deleteProducts = asyncHandler(async (res, req) => {
+  const { id: productId } = req.params;
+
+  const product = await Product.findById(productId);
+
+  if (!product) {
+    throw new CustomError("No product found", 404);
+  }
+
+  // resolve promise
+  // loop through photos array => delete photos
+  // key : product._id
+
+  const deletePhotos = Promise.all(
+    product.photos.map(async (elem, index) => {
+      await s3deleteFile({
+        bucketName: config.S3_BUCKET_NAME,
+        key: `products/${product._id.toString()}/photos_${index + 1}.png`,
+      });
+    })
+  );
+
+  await deletePhotos;
+
+  await product.remove();
+  res.status(200).json({
+    success: true,
+    message: "Product has been deleted successfully",
   });
 });
