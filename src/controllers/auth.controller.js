@@ -5,7 +5,7 @@ import asyncHandler from "../service/asyncHandler";
 import CustomError from "../utils/CustomError";
 import mailHelper from "../utils/mailHelper.js";
 
-export const cookieOption = {
+export const cookieOptions = {
   expires: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
   httpOnly: true,
 };
@@ -133,4 +133,44 @@ export const forgotPassword = asyncHandler(async (res, req) => {
 
     throw new CustomError(error.message || "Email coud not be sent", 500);
   }
+});
+
+export const resetPassword = asyncHandler(async (req, res) => {
+  const { token: resetToken } = req.params;
+
+  const { password, confirmPassword } = req.body;
+
+  const resetPasswordToken = crypto
+    .createHash("sha256")
+    .update(forgotToken)
+    .digest("hex");
+
+  const user = await User.findOne({
+    forgotPasswordToken: resetPasswordToken,
+    forgotPasswordExpiry: { $gt: Date.now() },
+  });
+
+  if (!user) {
+    throw new CustomError("password reset token is invalid or expired", 400);
+  }
+
+  if (password !== confirmPassword) {
+    throw new CustomError("password does not match", 400);
+  }
+
+  user.password = password;
+  user.forgotPasswordToken = undefined;
+  user.forgotPasswordExpiry = undefined;
+
+  await user.save();
+
+  // optional
+
+  const token = user.getJWTtoken();
+  res.cookie("token", token, cookieOptions);
+
+  res.status(200).json({
+    success: true,
+    user,
+  });
 });
