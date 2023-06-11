@@ -1,4 +1,5 @@
 // sign up the user
+
 import User from "../models/user.schema.js";
 import asyncHandler from "../service/asyncHandler";
 import CustomError from "../utils/CustomError";
