@@ -55,7 +55,8 @@ export const generateRazorpayOrderId = asyncHandler(async (res, req) => {
 // Todo: add order in DB and update the product stock
 
 export const generarteOrder = asyncHandler(async (req, res) => {
-  //
+  //need to add more fields
+  const { transactionId, product, coupon } = req.body;
 });
 
 // Todo get only my orders
