@@ -2,6 +2,14 @@ import Collection from "../models/collection.schema.js";
 import asyncHandler from "../service/asyncHandler.js";
 import CustomError from "../utils/CustomError";
 
+/**********************************************************
+ * @CREATE_COUPON
+ * @route https://localhost:4000/api/coupon
+ * @description Controller used for creating a new coupon
+ * @description Only admin and Moderator can create the coupon
+ * @returns Coupon Object with success message "Coupon Created SuccessFully"
+ *********************************************************/
+
 export const createCollection = asyncHandler(async (req, res) => {
   const { name } = req.body;
 

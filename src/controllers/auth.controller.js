@@ -10,6 +10,13 @@ export const cookieOptions = {
   httpOnly: true,
 };
 
+/******************************************************
+ * @SIGNUP
+ * @route http://localhost:4000/api/auth/signup
+ * @description User signUp Controller for creating new user
+ * @returns User Object
+ ******************************************************/
+
 export const signUp = asyncHandler(async (req, res, next) => {
   // get data from user
   const { name, email, password } = req.body;
