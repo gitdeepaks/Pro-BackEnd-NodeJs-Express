@@ -3,17 +3,29 @@ import formidable from "formidable";
 import { s3FileUpload, s3deleteFile } from "../service/imageUpload.js";
 import Mongoose from "mongoose";
 import asyncHandler from "../service/asyncHandler.js";
+import CustomError from "../utils/CustomError.js";
 import config from "../config/index.js";
 import fs from "fs";
 
+/**********************************************************
+ * @ADD_PRODUCT
+ * @route https://localhost:4000/api/product
+ * @description Controller used for creating a new product
+ * @description Only admin can create the coupon
+ * @descriptio Uses AWS S3 Bucket for image upload
+ * @returns Product Object
+ *********************************************************/
+
 export const addProduct = asyncHandler(async (req, res) => {
   const form = formidable({ multiples: true, keepExtensions: true });
-  form.parse(res, async, async function (err, fields, files) {
+
+  form.parse(req, async function (err, fields, files) {
     if (err) {
       throw new CustomError(err.message || "Something went wrong", 500);
     }
 
     let productId = new Mongoose.Types.ObjectId().toHexString();
+
     console.log(fields, files);
 
     if (
@@ -22,8 +34,9 @@ export const addProduct = asyncHandler(async (req, res) => {
       !fields.description ||
       !fields.collectionId
     ) {
-      throw new CustomError("Please fill the  fields", 500);
+      throw new CustomError("Please fill all the fields", 500);
     }
+
     let imgArrayResp = Promise.all(
       Object.keys(files).map(async (file, index) => {
         const element = file[fileKey];
@@ -36,8 +49,11 @@ export const addProduct = asyncHandler(async (req, res) => {
           body: data,
           contentType: element.mimetype,
         });
-        // producId =123abc456
-        // 1:product/123abc456/photo_1.png
+
+        // productId = 123abc456
+        // 1: products/123abc456/photo_1.png
+        // 2: products/123abc456/photo_2.png
+
         console.log(upload);
         return {
           secure_url: upload.Location,
@@ -56,21 +72,18 @@ export const addProduct = asyncHandler(async (req, res) => {
     if (!product) {
       throw new CustomError("Product failed to be created in DB", 400);
     }
-
     res.status(200).json({
       success: true,
       product,
     });
-
-    //TODO
   });
 });
 
-export const getAllProducts = asyncHandler(async (res, req) => {
+export const getAllProducts = asyncHandler(async (req, res) => {
   const products = await Product.find({});
 
   if (!products) {
-    throw new CustomError("No  product found", 404);
+    throw new CustomError("No products found", 404);
   }
 
   res.status(200).json({
@@ -79,7 +92,7 @@ export const getAllProducts = asyncHandler(async (res, req) => {
   });
 });
 
-export const getProductById = asyncHandler(async (res, req) => {
+export const getProductById = asyncHandler(async (req, res) => {
   const { id: productId } = req.params;
 
   const product = await Product.findById(productId);
@@ -97,7 +110,7 @@ export const getProductById = asyncHandler(async (res, req) => {
 export const getProductByCollectionId = asyncHandler(async (req, res) => {
   const { id: collectionId } = req.params;
 
-  const products = Product.find({ collectionId });
+  const products = await Product.find({ collectionId });
 
   if (!products) {
     throw new CustomError("No products found", 404);
@@ -109,7 +122,7 @@ export const getProductByCollectionId = asyncHandler(async (req, res) => {
   });
 });
 
-export const deleteProducts = asyncHandler(async (res, req) => {
+export const deleteProduct = asyncHandler(async (req, res) => {
   const { id: productId } = req.params;
 
   const product = await Product.findById(productId);
@@ -118,15 +131,15 @@ export const deleteProducts = asyncHandler(async (res, req) => {
     throw new CustomError("No product found", 404);
   }
 
-  // resolve promise
-  // loop through photos array => delete photos
-  // key : product._id
+  //resolve promise
+  // loop through photos array => delete each photo
+  //key : product._id
 
   const deletePhotos = Promise.all(
     product.photos.map(async (elem, index) => {
       await s3deleteFile({
         bucketName: config.S3_BUCKET_NAME,
-        key: `products/${product._id.toString()}/photos_${index + 1}.png`,
+        key: `products/${product._id.toString()}/photo_${index + 1}.png`,
       });
     })
   );
@@ -134,6 +147,7 @@ export const deleteProducts = asyncHandler(async (res, req) => {
   await deletePhotos;
 
   await product.remove();
+
   res.status(200).json({
     success: true,
     message: "Product has been deleted successfully",
