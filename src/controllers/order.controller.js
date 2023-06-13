@@ -24,7 +24,7 @@ export const generateRazorpayOrderId = asyncHandler(async (res, req) => {
       }
       if (productFromDB.stock < count) {
         return res.status(400).json({
-          error: "Product quantity npt in stock",
+          error: "Product quantity not in stock",
         });
       }
       totalAmount += productFromDB.price * count;
