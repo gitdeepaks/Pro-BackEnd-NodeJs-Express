@@ -73,3 +73,50 @@ export const generateRazorpayOrderId = asyncHandler(async (req, res) => {
     order,
   });
 });
+
+export const generateOrder = asyncHandler(async (req, res) => {
+  const { transactionId, product, coupon } = req.body;
+
+  // You may need to create an order object and save it to the database.
+  const order = new Order({
+    transactionId,
+    product,
+    coupon,
+    // Add other fields as needed.
+  });
+
+  await order.save();
+
+  // Then, you can update the stock of the ordered products.
+  product.map(async (product) => {
+    const productFromDB = await Product.findById(product.productId);
+    productFromDB.stock -= product.count;
+    await productFromDB.save();
+  });
+
+  // Finally, send a response.
+  res.status(200).json({ message: "Order generated successfully." });
+});
+
+// Todo get only my orders
+export const getMyOrders = asyncHandler(async (req, res) => {
+  const userId = req.user._id; // Assuming you have user in req after authentication
+  const orders = await Order.find({ user: userId });
+  res.status(200).json({ orders });
+});
+
+// Todo get updateOrderStatus
+
+export const updateOrderStatus = asyncHandler(async (req, res) => {
+  const { orderId, status } = req.body;
+  const order = await Order.findById(orderId);
+
+  if (!order) {
+    throw new CustomError("Order not found", 404);
+  }
+
+  order.status = status;
+  await order.save();
+
+  res.status(200).json({ message: "Order status updated successfully." });
+});
